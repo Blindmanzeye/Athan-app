@@ -81,6 +81,9 @@ def parseData(data: dict) -> dict:
 
 
 def displayData(parsedData: dict):
+    font = ("Times New Roman", 20)
+    color = "#A7A7A7"
+
     date: str = parsedData["date"]
     islamicDate: str = parsedData["islamicData"]["date"]
     islamicMonth: str = parsedData["islamicData"]["month"]["en"]
@@ -92,8 +95,32 @@ def displayData(parsedData: dict):
     window.geometry("500x500")
     set_appearance_mode("dark")
 
-    dateLabel = CTkLabel(master=window, text=dateConvert(date), font=("Times New Roman", 20), text_color="#A7A7A7")
-    dateLabel.place(x=200, y=20)
+    weekdayLabel = CTkLabel(master=window, text=weekday, font=font, text_color=color)
+    weekdayLabel.place(x=210, y=20)
+
+    dateLabel = CTkLabel(master=window, text=dateConvert(date), font=font, text_color=color)
+    dateLabel.place(x=200, y=50)
+
+    islamicDateLabel = CTkLabel(master=window, text=f"{islamicMonth} {" ".join(dateConvert(islamicDate).split(" ")[1:])} AH", font=font, text_color=color)
+    islamicDateLabel.place(x=160, y=80)
+
+    sunKeys = ["Sunrise", "Sunset", "Midnight"]
+    sunTuples = []
+    for key in sunKeys:
+        sunTuples.append(prayerTimesAmPm.pop(key))
+    
+    globalTimeDict: dict = {sunKeys[x]: sunTuples[x] for x in range(len(sunKeys))}
+
+    for newkey in globalTimeDict:
+        time = globalTimeDict[newkey]
+        globalTimeLabel = CTkLabel(master=window, text=f"{newkey}: {time}", font=font, text_color=color)
+        globalTimeLabel.place(x=70, y=(190 + (30 * sunKeys.index(newkey))))
+
+    for num, key in enumerate(prayerTimesAmPm):
+        offset = 170
+        timeLabel = CTkLabel(master=window, text=f"{key}: {prayerTimesAmPm[key]}", font=font, text_color=color)
+        timeLabel.place(x=250, y=(offset + (30 * num)))
+
     window.mainloop()
 
 
