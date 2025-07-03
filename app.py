@@ -1,10 +1,21 @@
-import tkinter
+from customtkinter import *
 import requests
-import datetime
+from datetime import datetime
 from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
 import re
 import json
+
+
+def dateConvert(dateStr: str) -> str:
+    date_obj = datetime.strptime(dateStr, "%d-%m-%Y")
+    formatted_date = date_obj.strftime("%B %#d, %Y")
+    return formatted_date
+
+
+def timeConvert(time_str) -> str:
+    time_obj = datetime.strptime(time_str, "%H:%M")
+    return time_obj.strftime("%I:%M %p").lstrip("0")
 
 
 def loadJson() -> dict:
@@ -25,7 +36,7 @@ def findTimezone(lat: float, lon: float) -> str:
 
 
 def findDate() -> str:
-    requestedDate: str = str(datetime.datetime.now())
+    requestedDate: str = str(datetime.now())
     date: list = re.split("- | ", requestedDate)
     strDate = str(date.pop(0))
     strDateReversed = "-".join(reversed(strDate.split("-")))
@@ -69,6 +80,23 @@ def parseData(data: dict) -> dict:
     return returnData
 
 
+def displayData(parsedData: dict):
+    date: str = parsedData["date"]
+    islamicDate: str = parsedData["islamicData"]["date"]
+    islamicMonth: str = parsedData["islamicData"]["month"]["en"]
+    weekday: str = parsedData["weekday"]
+    prayerTimes: dict = parsedData["times"]
+    prayerTimesAmPm = {key: timeConvert(prayerTimes[key]) for key in prayerTimes}
+
+    window = CTk()
+    window.geometry("500x500")
+    set_appearance_mode("dark")
+
+    dateLabel = CTkLabel(master=window, text=dateConvert(date), font=("Times New Roman", 20), text_color="#A7A7A7")
+    dateLabel.place(x=200, y=20)
+    window.mainloop()
+
+
 def main() -> None:
     link = "https://api.aladhan.com/v1/timings"
     date = findDate()
@@ -93,10 +121,8 @@ def main() -> None:
             raise LookupError
     
     writeToJson(parsedData)
-    islamicDate: str = parsedData["islamicData"]["date"]
-    islamicMonth: str = parsedData["islamicData"]["month"]["en"]
-    weekday: str = parsedData["weekday"]
-    prayerTimes: dict = parsedData["times"]
+    displayData(parsedData)
+
 
 
 if __name__ == "__main__":

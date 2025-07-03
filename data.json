@@ -2,11 +2,11 @@
     "islamicData": {
         "month": {
             "number": 1,
-            "en": "Mu\u1e25arram",
-            "ar": "\u0645\u064f\u062d\u064e\u0631\u064e\u0651\u0645",
+            "en": "",
+            "ar": "",
             "days": 30
         },
-        "date": "DD-MM-1446"
+        "date": ""
     },
     "weekday": "",
     "times": {
@@ -19,5 +19,5 @@
         "Isha": "",
         "Midnight": ""
     },
-    "date": "DD-MM-YYYY"
+    "date": ""
 }
