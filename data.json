@@ -1,7 +1,7 @@
 {
     "islamicData": {
         "month": {
-            "number": 0,
+            "number": 1,
             "en": "",
             "ar": "",
             "days": 30
@@ -13,7 +13,7 @@
         "Fajr": "",
         "Sunrise": "",
         "Dhuhr": "",
-        "Asr": "",
+        "Asr": "1",
         "Sunset": "",
         "Maghrib": "",
         "Isha": "",

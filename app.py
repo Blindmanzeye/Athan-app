@@ -6,6 +6,13 @@ from timezonefinder import TimezoneFinder
 import re
 import json
 
+window = CTk()
+window.geometry("500x500")
+window.title("Athan App") # type: ignore
+set_appearance_mode("dark")
+
+
+sunKeys = ["Sunrise", "Sunset", "Midnight"]
 
 def dateConvert(dateStr: str) -> str:
     date_obj = datetime.strptime(dateStr, "%d-%m-%Y")
@@ -57,6 +64,47 @@ def findCoordinates() -> tuple:
     return (lat, lon)
 
 
+def findTime() -> str:
+    hms = (datetime.now().hour, datetime.now().minute, datetime.now().second)
+    formatHms = []
+    for timeParam in hms:
+        if len(str(timeParam)) == 1:
+            formatHms.append("0" + str(timeParam))
+        else:
+            formatHms.append(str(timeParam))
+    time = ":".join(map(str, formatHms))
+    return time
+
+
+def increment():
+    time = findTime()
+    textLabel.configure(text=time)
+    prayerTimeAthan(time)
+    window.after(1000, increment)
+
+
+def prayerTimeAthan(time: str):
+    # time: HH:MM:SS
+    # data Time: HH:MM
+    # Problem: make shore it doesnt go off the entire time for the full min
+    tokenTime = time.split(":")
+    localAthanForTheMin = True
+
+    if tokenTime[-1] == "00":
+        localAthanForTheMin = False
+    tokenTime.pop(-1)
+    formatTime = ":".join(tokenTime)
+    
+
+    data = loadJson()
+    times: dict = data["times"]
+    listOfTimes = [times[key] for key in times if key not in sunKeys]
+    if not localAthanForTheMin and formatTime in listOfTimes :
+        os.system("athan.mp3")
+        localAthanForTheMin = True
+
+
+
 def parseData(data: dict) -> dict:
     times: dict = data["data"]["timings"]
     dateData: dict = data["data"]["date"]
@@ -91,10 +139,6 @@ def displayData(parsedData: dict):
     prayerTimes: dict = parsedData["times"]
     prayerTimesAmPm = {key: timeConvert(prayerTimes[key]) for key in prayerTimes}
 
-    window = CTk()
-    window.geometry("500x500")
-    set_appearance_mode("dark")
-
     weekdayLabel = CTkLabel(master=window, text=weekday, font=font, text_color=color)
     weekdayLabel.place(x=210, y=20)
 
@@ -104,7 +148,12 @@ def displayData(parsedData: dict):
     islamicDateLabel = CTkLabel(master=window, text=f"{islamicMonth} {" ".join(dateConvert(islamicDate).split(" ")[1:])} AH", font=font, text_color=color)
     islamicDateLabel.place(x=160, y=80)
 
-    sunKeys = ["Sunrise", "Sunset", "Midnight"]
+    currTime = findTime()
+    global textLabel
+    textLabel = CTkLabel(window, text=currTime, font=font, text_color=color)
+    textLabel.place(x=210, y=125)
+
+    
     sunTuples = []
     for key in sunKeys:
         sunTuples.append(prayerTimesAmPm.pop(key))
@@ -120,7 +169,8 @@ def displayData(parsedData: dict):
         offset = 170
         timeLabel = CTkLabel(master=window, text=f"{key}: {prayerTimesAmPm[key]}", font=font, text_color=color)
         timeLabel.place(x=250, y=(offset + (30 * num)))
-
+    
+    window.after(1000, increment)
     window.mainloop()
 
 
