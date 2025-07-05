@@ -5,6 +5,7 @@ from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
 import re
 import json
+import sys
 
 window = CTk()
 window.geometry("500x500")
@@ -78,9 +79,29 @@ def findTime() -> str:
 
 def increment():
     time = findTime()
+    if time == "00:00:00":
+        os.execv(sys.executable, ['python'] + sys.argv)
     textLabel.configure(text=time)
     prayerTimeAthan(time)
     window.after(1000, increment)
+
+
+def pullData() -> dict | None:
+    date = findDate()
+    coordinates = findCoordinates()
+    lat = coordinates[0]
+    lon = coordinates[1]
+    timezone = findTimezone(lat, lon)
+    link = "https://api.aladhan.com/v1/timings"
+    officialLink = f"{link}/{date}?latitude={lat}&longitude={lon}&method=3&shafaq=general&tune=0%2C32%2C-2%2C0%2C0%2C0%2C0%2C-20%2C0&school=1&timezonestring={timezone}&calendarMethod=UAQ"
+    response = requests.get(officialLink)
+    if response.status_code == 200:
+        print("Data Pulled from API")
+        data = json.loads(response.text)
+        return data
+    else:
+        print(f"Error: {response}, Check region.txt to see if you inputted a valid city")
+        raise LookupError
 
 
 def prayerTimeAthan(time: str):
@@ -175,28 +196,14 @@ def displayData(parsedData: dict):
 
 
 def main() -> None:
-    link = "https://api.aladhan.com/v1/timings"
     date = findDate()
-    coordinates = findCoordinates()
-    lat = coordinates[0]
-    lon = coordinates[1]
-    timezone = findTimezone(lat, lon)
-
-    officialLink = f"{link}/{date}?latitude={lat}&longitude={lon}&method=3&shafaq=general&tune=0%2C32%2C-2%2C0%2C0%2C0%2C0%2C-20%2C0&school=1&timezonestring={timezone}&calendarMethod=UAQ"
     tempData = loadJson()
     if date == tempData["date"]:
         print("Data Pulled from Local File")
-        parsedData = tempData
+        parsedData: dict = tempData
     else:
-        response = requests.get(officialLink)
-        if response.status_code == 200:
-            print("Data Pulled from API")
-            data = json.loads(response.text)
-            parsedData: dict = parseData(data)
-        else:
-            print(f"Error: {response}")
-            raise LookupError
-    
+        data = pullData()
+        parsedData = parseData(data)
     writeToJson(parsedData)
     displayData(parsedData)
 
